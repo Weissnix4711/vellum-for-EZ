@@ -6,6 +6,7 @@
         public string WorldName;
         public BackupConfig Backups;
         public RenderConfig Renders;
+        public ChatSyncConfig ChatSync; //TH
         public bool QuietMode;
         public bool HideStdout;
         public bool BusyCommands;
@@ -36,6 +37,13 @@
         public double RenderInterval;
         public string PapyrusGlobalArgs;
         public string[] PapyrusTasks;
+    }
 
+    public struct ChatSyncConfig //TH
+    {
+        public bool EnableChatSync;
+        public string[] OtherServers;
+        public string BusAddress;
+        public uint BusPort;
     }
 }
