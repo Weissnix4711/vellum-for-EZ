@@ -8,9 +8,8 @@ namespace Vellum.Automation
 {
 
     // tomrhollis addition to make use of ElementZero chat functionality
-    // right now, simply passes messages to the other servers
-    // TODO: * include broadcast to discord
-    //       * poll other servers for player count & list
+    // passes messages to other EZ BDS servers and discord
+    // TODO: * poll other servers for player count & list
 
     public class ChatManager : Manager
     {

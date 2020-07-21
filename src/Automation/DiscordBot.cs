@@ -11,6 +11,8 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace Vellum.Automation
 {
+    // tomrhollis: Discord bot for Vellum + ElementZero
+
     class DiscordBot
     {
         private DiscordSocketClient _client;
