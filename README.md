@@ -12,6 +12,39 @@ This is where I store changes to Vellum that I've made for my own use including:
 * Fixed notification before shutting down to render or backup
 * Early merge in of [**BDS process watchdog**](https://github.com/clarkx86/vellum/pull/10) by [**bennydiamond**](https://github.com/bennydiamond)
 
+## Configuration 
+These are the settings that have been added to configuration.json:
+```
+KEY               VALUE               ABOUT
+----------------------------------------------------------
+CHAT SETTINGS
+-----------------
+EnableChatSync     Boolean (!)        Enables this whole chat section
+
+BusAddress         String  (!)        The address of the ElementZero bus that all
+                                      the servers are connected to
+                                      
+BusPort            Integer (!)        The port where the bus is listening
+
+OtherServers       String Array (!)   The names of all the other servers to
+                                      broadcast messages to
+                                      
+EnableDiscord      Boolean (!)        Enables the discord functionality
+                                      (currently requires the bus to be enabled --
+                                      this will probably change someday)
+                                     
+DiscordToken       String (!)         The secret token for the discord bot
+
+DiscordChannel     ULong (!)          The numerical ID for the discord channel where
+                                      the bot should send the messages
+
+-------------------
+ADDITIONAL SETTINGS
+-------------------
+BdsWatchdog        Boolean            Watches the BDS process and tries to restart
+                                      it automatically if it crashes
+```
+
 ## How should I contribute?
 If your contribution is not related to the interaction of Vellum and ElementZero specifically, please contribute to the [**main repository**](https://github.com/clarkx86/vellum/) instead.
 
