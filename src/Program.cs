@@ -151,6 +151,12 @@ namespace Vellum
                     _bdsVersion = UpdateChecker.ParseVersion(e.Matches[0].Groups[1].Value, VersionFormatting.MAJOR_MINOR_REVISION_BUILD);
                 });
 
+                string worldPath = Path.Join(bdsDirPath, "worlds", RunConfig.WorldName);
+                string tempWorldPath = Path.Join(Directory.GetCurrentDirectory(), _tempPath, RunConfig.WorldName);
+
+                _renderManager = new RenderManager(bds, RunConfig);
+                _backupManager = new BackupManager(bds, RunConfig);
+                _chatManager = new ChatManager(bds, RunConfig); //TH
                 
                 playerCount = 0;
 
@@ -178,14 +184,9 @@ namespace Vellum
                     bds.RegisterMatchHandler(BdsStrings.ChatMessage, (object sender, MatchedEventArgs e) =>
                     {
                         _chatManager.sendChat(e.Matches);
-                    });                    
+                    });
+                    if (RunConfig.ChatSync.EnableDiscord) _chatManager.startDiscord();
                 }
-                string worldPath = Path.Join(bdsDirPath, "worlds", RunConfig.WorldName);
-                string tempWorldPath = Path.Join(Directory.GetCurrentDirectory(), _tempPath, RunConfig.WorldName);
-
-                _renderManager = new RenderManager(bds, RunConfig);
-                _backupManager = new BackupManager(bds, RunConfig);
-                _chatManager = new ChatManager(bds, RunConfig); //TH
 
                 if (RunConfig.Backups.BackupOnStartup)
                 {
@@ -416,7 +417,10 @@ namespace Vellum
                             EnableChatSync = false,
                             OtherServers = new string[] {},
                             BusAddress = "127.0.0.1",
-                            BusPort = 8234
+                            BusPort = 8234,
+                            EnableDiscord = false,
+                            DiscordToken = "none",
+                            DiscordChannel = 0
                         },
                         QuietMode = false,
                         HideStdout = true,

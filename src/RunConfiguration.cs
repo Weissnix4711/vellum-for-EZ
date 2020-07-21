@@ -45,5 +45,8 @@
         public string[] OtherServers;
         public string BusAddress;
         public uint BusPort;
+        public bool EnableDiscord;
+        public string DiscordToken;
+        public ulong DiscordChannel;
     }
 }

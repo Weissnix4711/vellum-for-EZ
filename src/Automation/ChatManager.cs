@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Net.Http;
 using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 
 namespace Vellum.Automation
 {
@@ -13,14 +14,22 @@ namespace Vellum.Automation
 
     public class ChatManager : Manager
     {
-        private ProcessManager _bds; // not used now, but will be later
+        private ProcessManager _bds; 
         public RunConfiguration RunConfig;
+        private DiscordBot _discord;
 
-        // initialize chat manager with the address and port of the EZ bus
+        // initialize chat manager
         public ChatManager(ProcessManager p, RunConfiguration runConfig)
         {
             _bds = p;
             RunConfig = runConfig;
+            _discord = null;
+        }
+
+        public async Task startDiscord()
+        {
+            _discord = new DiscordBot(this, RunConfig);
+            _discord.RunBotAsync();
         }
 
         // receive a connect message from this server, process then broadcast it
@@ -60,31 +69,38 @@ namespace Vellum.Automation
             broadcastMessage(message);
         }
 
+        public void postMessage(string message)
+        {
+            _bds.SendTellraw(message, "");
+        }
 
-        // broadcast a message to the other servers
+        // broadcast a message to the other servers & discord if applicable
         public void broadcastMessage(string message)
         {
+            if (RunConfig.ChatSync.EnableDiscord && _discord != null)
+            {
+                Task.Run(async delegate
+                {
+                    await _discord.sendMessage(message);
+                });
+            }
+            
             try 
             {
                 HttpClient client = new HttpClient();
                 StringContent content = new StringContent("say " + message);
-                string addressBase = "http://{0}:{1}/map/{2}/execute_command";
-                string address = "";
+                string address = "http://{0}:{1}/map/{2}/execute_command";
 
                 foreach (string server in RunConfig.ChatSync.OtherServers)
                 {
-                    address = String.Format(addressBase, RunConfig.ChatSync.BusAddress, RunConfig.ChatSync.BusPort, server);
-                    client.PostAsync(address, content).Result.Content.ReadAsStringAsync();
+                    client.PostAsync(String.Format(address, RunConfig.ChatSync.BusAddress, RunConfig.ChatSync.BusPort, server), content);
                 }
-
-                // if (RunConfig.ChatSync.EnableDiscord) goes here
-
             } 
             catch (Exception e) 
             {
                 Log("Something went wrong with the bus: " + e.Message);
             }
-
+            
         }
     }
 }
