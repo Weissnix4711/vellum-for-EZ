@@ -30,6 +30,9 @@ OtherServers       String Array (!)   The names of all the other servers to
                                       broadcast messages to
                                       
 EnableDiscord      Boolean (!)        Enables the discord functionality
+                                      -- If you're not using the bus chat sync,
+                                      keep EnableChatSync true but leave
+                                      OtherServers as an empty array: [ ]
                                      
 DiscordToken       String (!)         The secret token for the discord bot
 
