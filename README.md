@@ -7,7 +7,7 @@ This is where I store changes to Vellum that I've made for my own use including:
 * Adding functionality to Vellum to take advantage of [**ElementZero**](https://github.com/Element-0/ElementZero), a version of BDS that adds many features.
 
 ## What is different so far?
-* Use ElementZero bus to sync chats between multiple servers running on the same machine
+* Use ElementZero bus to sync chats between multiple servers
 * Connect to a Discord bot to sync chat with a Discord channel
 * Fixed notification before shutting down to render or backup
 * Early merge in of [**BDS process watchdog**](https://github.com/clarkx86/vellum/pull/10) by [**bennydiamond**](https://github.com/bennydiamond)
