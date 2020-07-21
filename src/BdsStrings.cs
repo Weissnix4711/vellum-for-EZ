@@ -7,5 +7,6 @@ namespace Vellum
         public const string ServerStarted = @"^.+ (Server started\.)";
         public const string PlayerConnected = @".+Player connected:\s(.+),";
         public const string PlayerDisconnected = @".+Player disconnected:\s(.+),";
+        public const string ChatMessage = @".+\[CHAT\](.+)"; // tomrhollis addition for EZ chat functions
     }
 }

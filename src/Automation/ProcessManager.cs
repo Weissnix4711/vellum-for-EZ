@@ -183,12 +183,12 @@ namespace Vellum.Automation
             p.WaitForExit();
         }
 
-        public void SendTellraw(string message)
+        public void SendTellraw(string message, string prefix= "[§lVELLUM] ")
         {
             if (IsRunning && !Program.RunConfig.QuietMode)
             {
                 #if !IS_LIB
-                SendInput("tellraw @a {\"rawtext\":[{\"text\":\"§l[VELLUM]\"},{\"text\":\"§r " + message + "\"}]}");
+                SendInput("tellraw @a {\"rawtext\":[{\"text\":\"" + prefix + "\"},{\"text\":\"§r" + message + "\"}]}");
                 #endif
             }                
         }
