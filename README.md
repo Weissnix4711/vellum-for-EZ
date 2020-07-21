@@ -30,8 +30,6 @@ OtherServers       String Array (!)   The names of all the other servers to
                                       broadcast messages to
                                       
 EnableDiscord      Boolean (!)        Enables the discord functionality
-                                      (currently requires the bus to be enabled --
-                                      this will probably change someday)
                                      
 DiscordToken       String (!)         The secret token for the discord bot
 
