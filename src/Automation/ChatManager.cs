@@ -23,36 +23,55 @@ namespace Vellum.Automation
             _bds = p;
             RunConfig = runConfig;
             _discord = null;
+            if (RunConfig.ChatSync.EnableDiscord) this.StartDiscord();
         }
 
-        public async Task startDiscord()
+        public void Stop()
+        {
+            if (RunConfig.ChatSync.ServerStatusMessages)
+                this.BroadcastMessage(String.Format("{0} is shutting down", RunConfig.WorldName)).GetAwaiter().GetResult();
+            if (RunConfig.ChatSync.EnableDiscord)
+                this.StopDiscord().GetAwaiter().GetResult();
+        }
+
+        public async Task StartDiscord()
         {
             _discord = new DiscordBot(this, RunConfig);
-            _discord.RunBotAsync();
+            await Task.Run(() => _discord.RunBotAsync());
+        }
+
+        public async Task StopDiscord()
+        {
+            await _discord.ShutDown();
         }
 
         // receive a connect message from this server, process then broadcast it
-        public void userConnect(MatchCollection line)
+        public void UserConnect(MatchCollection line)
         {
             Regex r = new Regex(@": (.+),");
             Match m = r.Match(line[0].ToString());
             string user = m.Groups[1].ToString();
 
-            broadcastMessage(String.Format("(§b§l{0}§r) §e{1}§r connected", RunConfig.WorldName, user));
+            Task.Run(async delegate {
+                await BroadcastMessage(String.Format("(§b§l{0}§r) §e{1}§r connected", RunConfig.WorldName, user));
+            });
         }
 
         // receive a disconnect message from this server, process then broadcast it
-        public void userDisconnect(MatchCollection line)
+        public void UserDisconnect(MatchCollection line)
         {
             Regex r = new Regex(@": (.+)[,]");
             Match m = r.Match(line[0].ToString());
             string user = m.Groups[1].ToString();
 
-            broadcastMessage(String.Format("(§b§l{0}§r) §e{1}§r left", RunConfig.WorldName, user));
-        }
+            Task.Run(async delegate {
+                await BroadcastMessage(String.Format("(§b§l{0}§r) §e{1}§r left", RunConfig.WorldName, user));
+            });
+
+         }
 
         // receive a chat message from this server, process then broadcast it
-        public void sendChat(MatchCollection line)
+        public void SendChat(MatchCollection line)
         {
             Regex r = new Regex(@"\[.+\].+\[(.+)\] (.+)");
             Match m = r.Match(line[0].ToString());
@@ -65,41 +84,40 @@ namespace Vellum.Automation
             string message = String.Format("(§b§l{0}§r) [§e{1}§r] {2}", RunConfig.WorldName, user, chat);
 
             message = message.Trim();
-            broadcastMessage(message);
+            Task.Run(async delegate { await BroadcastMessage(message); });
         }
 
-        public void postMessage(string message)
+        public void PostMessage(string message)
         {
             _bds.SendTellraw(message, "");
         }
 
         // broadcast a message to the other servers & discord if applicable
-        public void broadcastMessage(string message)
+        public async Task BroadcastMessage(string message)
         {
-            if (RunConfig.ChatSync.EnableDiscord && _discord != null)
+            await Task.Run(() =>
             {
-                Task.Run(async delegate
+                if (RunConfig.ChatSync.EnableDiscord && _discord != null)
                 {
-                    await _discord.sendMessage(message);
-                });
-            }
-            
-            try 
-            {
-                HttpClient client = new HttpClient();
-                StringContent content = new StringContent("say " + message);
-                string address = "http://{0}:{1}/map/{2}/execute_command";
-
-                foreach (string server in RunConfig.ChatSync.OtherServers)
-                {
-                    client.PostAsync(String.Format(address, RunConfig.ChatSync.BusAddress, RunConfig.ChatSync.BusPort, server), content);
+                    _discord.SendMessage(message);
                 }
-            } 
-            catch (Exception e) 
-            {
-                Log("Something went wrong with the bus: " + e.Message);
-            }
-            
+
+                try
+                {
+                    HttpClient client = new HttpClient();
+                    StringContent content = new StringContent("say " + message);
+                    string address = "http://{0}:{1}/map/{2}/execute_command";
+
+                    foreach (string server in RunConfig.ChatSync.OtherServers)
+                    {
+                        client.PostAsync(String.Format(address, RunConfig.ChatSync.BusAddress, RunConfig.ChatSync.BusPort, server), content);
+                    }
+                }
+                catch (Exception e)
+                {
+                    Log("Something went wrong with the bus: " + e.Message);
+                }
+            });
         }
     }
 }

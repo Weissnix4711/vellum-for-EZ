@@ -45,6 +45,8 @@
         public string[] OtherServers;
         public string BusAddress;
         public uint BusPort;
+        public bool PlayerConnMessages;
+        public bool ServerStatusMessages;
         public bool EnableDiscord;
         public string DiscordToken;
         public ulong DiscordChannel;

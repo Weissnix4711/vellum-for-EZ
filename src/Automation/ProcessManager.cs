@@ -196,7 +196,7 @@ namespace Vellum.Automation
         private void TerminateProcess()
         {
             this.SendInput("stop");
-            this.Process.WaitForExit();
+            this.Process.WaitForExit(10000);
         }
 
         private void Clean()

@@ -126,7 +126,8 @@ namespace Vellum
                     System.AppDomain.CurrentDomain.UnhandledException += (object sender, UnhandledExceptionEventArgs e) =>
                     {
                         System.Console.WriteLine("Stopping Bedrock server due to an unhandled exception from vellum...");
-                        if (RunConfig.ChatSync.EnableChatSync) _chatManager.broadcastMessage(String.Format("{0} has crashed", RunConfig.WorldName)); // TH-chat sync
+                        if (RunConfig.ChatSync.EnableChatSync && RunConfig.ChatSync.ServerStatusMessages)
+                            _chatManager.BroadcastMessage(String.Format("{0} has crashed", RunConfig.WorldName)).GetAwaiter().GetResult(); // TH-chat sync
                         if (bds.IsRunning)
                         {
                             bds.Stop();
@@ -170,22 +171,23 @@ namespace Vellum
                     {
                         playerCount++;
                         nextBackup = true;
-                        if (RunConfig.ChatSync.EnableChatSync) _chatManager.userConnect(e.Matches); //TH - to chat mgr
+                        if (RunConfig.ChatSync.EnableChatSync && RunConfig.ChatSync.PlayerConnMessages)
+                            _chatManager.UserConnect(e.Matches); //TH - to chat mgr
                     });
 
                     bds.RegisterMatchHandler(BdsStrings.PlayerDisconnected, (object sender, MatchedEventArgs e) =>
                     {
                         playerCount--;
-                        if (RunConfig.ChatSync.EnableChatSync) _chatManager.userDisconnect(e.Matches); // TH - to chat mgr
+                        if (RunConfig.ChatSync.EnableChatSync && RunConfig.ChatSync.PlayerConnMessages)
+                            _chatManager.UserDisconnect(e.Matches); // TH - to chat mgr
                     });
                 }
                 if (RunConfig.ChatSync.EnableChatSync) //TH - send chat messages to chat manager
                 {
                     bds.RegisterMatchHandler(BdsStrings.ChatMessage, (object sender, MatchedEventArgs e) =>
                     {
-                        _chatManager.sendChat(e.Matches);
-                    });
-                    if (RunConfig.ChatSync.EnableDiscord) _chatManager.startDiscord();
+                        _chatManager.SendChat(e.Matches);
+                    });                    
                 }
 
                 if (RunConfig.Backups.BackupOnStartup)
@@ -200,7 +202,8 @@ namespace Vellum
                 {
                     bds.Start();
                     bds.WaitForMatch(BdsStrings.ServerStarted); // Wait until BDS successfully started
-                    if (RunConfig.ChatSync.EnableChatSync) _chatManager.broadcastMessage(String.Format("{0} is now online", RunConfig.WorldName)); // TH-chat sync
+                    if (RunConfig.ChatSync.EnableChatSync && RunConfig.ChatSync.ServerStatusMessages)
+                        _chatManager.BroadcastMessage(String.Format("{0} is now online", RunConfig.WorldName)); // TH-chat sync
                 }
 
                 // Backup interval
@@ -293,15 +296,16 @@ namespace Vellum
                                     break;
 
                                 case "stop":
-                                    if (RunConfig.ChatSync.EnableChatSync) _chatManager.broadcastMessage(String.Format("{0} is shutting down", RunConfig.WorldName)); // TH-chat sync
+                                    
                                     System.Timers.Timer shutdownTimer = new System.Timers.Timer();
                                     shutdownTimer.AutoReset = false;
-                                    shutdownTimer.Elapsed += (object sender, ElapsedEventArgs e) => {
+                                    shutdownTimer.Elapsed += (object sender, ElapsedEventArgs e) => 
+                                    {
+                                        if (RunConfig.ChatSync.EnableChatSync) _chatManager.Stop(); // TH-chat sync
                                         // _renderManager.Abort();
                                         bds.Stop();
                                         _readInput = false;
                                         shutdownTimer.Close();
-                                        Console.WriteLine("vellum quit correctly");
                                         System.Environment.Exit(0);
                                     };
 
@@ -389,20 +393,20 @@ namespace Vellum
                         Backups = new BackupConfig()
                         {
                             EnableBackups = true,
-                            StopBeforeBackup = (System.Environment.OSVersion.Platform != PlatformID.Win32NT ? false : true), // Should be reverted to "false" by default when 1.16 releases
+                            StopBeforeBackup = (System.Environment.OSVersion.Platform != PlatformID.Win32NT ? false : true), 
                             NotifyBeforeStop = 60,
                             ArchivePath = "./backups/",
                             BackupsToKeep = 10,
-                            OnActivityOnly = false,
+                            OnActivityOnly = true,
                             BackupOnStartup = true,
-                            BackupInterval = 60,
+                            BackupInterval = 240,
                             PreExec = "",
                             PostExec = "",
                         },
                         Renders = new RenderConfig()
                         {
-                            EnableRenders = true,
-                            RenderInterval = 180,
+                            EnableRenders = false,
+                            RenderInterval = 1440,
                             PapyrusBinPath = "",
                             PapyrusGlobalArgs = "-w $WORLD_PATH -o $OUTPUT_PATH --htmlfile index.html -f png -q 100 --deleteexistingupdatefolder",
                             PapyrusTasks = new string[] {
@@ -418,6 +422,8 @@ namespace Vellum
                             OtherServers = new string[] {},
                             BusAddress = "127.0.0.1",
                             BusPort = 8234,
+                            PlayerConnMessages = true,
+                            ServerStatusMessages = false,
                             EnableDiscord = false,
                             DiscordToken = "none",
                             DiscordChannel = 0
@@ -439,9 +445,13 @@ namespace Vellum
         {
             if (!_backupManager.Processing)
             {
-                if (RunConfig.ChatSync.EnableChatSync && RunConfig.Backups.StopBeforeBackup)
-                    _chatManager.broadcastMessage(String.Format("{0} is shutting down for backup", RunConfig.WorldName)); // TH-chat sync
+                if (RunConfig.Backups.StopBeforeBackup && RunConfig.ChatSync.EnableChatSync && RunConfig.ChatSync.ServerStatusMessages) // TH-chat sync
+                    _chatManager.BroadcastMessage(String.Format("{0} is shutting down for backup", RunConfig.WorldName)).GetAwaiter().GetResult(); 
+
                 _backupManager.CreateWorldBackup(worldPath, tempWorldPath, false, true);
+
+                if (RunConfig.Backups.StopBeforeBackup && RunConfig.ChatSync.EnableChatSync && RunConfig.ChatSync.ServerStatusMessages)// TH-chat sync   
+                    _chatManager.BroadcastMessage(String.Format("{0} is coming back online", RunConfig.WorldName)).GetAwaiter().GetResult();   
             }
             else
             {
@@ -453,9 +463,14 @@ namespace Vellum
         {
             if (!_backupManager.Processing && !_renderManager.Processing)
             {
-                if (RunConfig.ChatSync.EnableChatSync && RunConfig.Backups.StopBeforeBackup)
-                    _chatManager.broadcastMessage(String.Format("{0} is shutting down for backup", RunConfig.WorldName)); // TH-chat sync
+                if (RunConfig.Backups.StopBeforeBackup && RunConfig.ChatSync.EnableChatSync && RunConfig.ChatSync.ServerStatusMessages) // TH-chat sync
+                    _chatManager.BroadcastMessage(String.Format("{0} is shutting down to start map rendering", RunConfig.WorldName)).GetAwaiter().GetResult(); 
+
                 _backupManager.CreateWorldBackup(worldPath, tempWorldPath, false, false);
+
+                if (RunConfig.Backups.StopBeforeBackup && RunConfig.ChatSync.EnableChatSync && RunConfig.ChatSync.ServerStatusMessages)  // TH-chat sync
+                    _chatManager.BroadcastMessage(String.Format("{0} is coming back online", RunConfig.WorldName)).GetAwaiter().GetResult();
+
                 _renderManager.Start(tempWorldPath);
             }
             else
