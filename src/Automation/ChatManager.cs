@@ -53,7 +53,7 @@ namespace Vellum.Automation
             string user = m.Groups[1].ToString();
 
             Task.Run(async delegate {
-                await BroadcastMessage(String.Format("(§b§l{0}§r) §e{1}§r connected", RunConfig.WorldName, user));
+                await BroadcastMessage(String.Format("({0}) {1} connected", RunConfig.WorldName, user));
             });
         }
 
@@ -65,7 +65,7 @@ namespace Vellum.Automation
             string user = m.Groups[1].ToString();
 
             Task.Run(async delegate {
-                await BroadcastMessage(String.Format("(§b§l{0}§r) §e{1}§r left", RunConfig.WorldName, user));
+                await BroadcastMessage(String.Format("({0}) {1} left", RunConfig.WorldName, user));
             });
 
          }
@@ -81,7 +81,7 @@ namespace Vellum.Automation
             {
                 return; // don't transmit dot commands
             }
-            string message = String.Format("(§b§l{0}§r) [§e{1}§r] {2}", RunConfig.WorldName, user, chat);
+            string message = String.Format("({0}) [{1}] {2}", RunConfig.WorldName, user, chat);
 
             message = message.Trim();
             Task.Run(async delegate { await BroadcastMessage(message); });
@@ -107,7 +107,7 @@ namespace Vellum.Automation
                     HttpClient client = new HttpClient();
                     StringContent content = new StringContent("say " + message);
                     string address = "http://{0}:{1}/map/{2}/execute_command";
-
+                    
                     foreach (string server in RunConfig.ChatSync.OtherServers)
                     {
                         client.PostAsync(String.Format(address, RunConfig.ChatSync.BusAddress, RunConfig.ChatSync.BusPort, server), content);
