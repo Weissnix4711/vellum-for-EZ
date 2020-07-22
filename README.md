@@ -9,7 +9,7 @@ This is where I store changes to Vellum that I've made for my own use including:
 ## What is different so far?
 * Use ElementZero bus to sync chats between multiple servers
 * Connect to a Discord bot to sync chat with a Discord channel
-  * Create Discord mentions within Minecraft by using @<User Name> -- with the <> included
+  * Create Discord mentions within Minecraft by using `@<User Name>` -- with the <> included
 * Fixed notification before shutting down to render or backup
 * Early merge in of [**BDS process watchdog**](https://github.com/clarkx86/vellum/pull/10) by [**bennydiamond**](https://github.com/bennydiamond)
 
