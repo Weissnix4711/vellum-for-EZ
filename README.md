@@ -9,6 +9,7 @@ This is where I store changes to Vellum that I've made for my own use including:
 ## What is different so far?
 * Use ElementZero bus to sync chats between multiple servers
 * Connect to a Discord bot to sync chat with a Discord channel
+  * Create Discord mentions within Minecraft by using `@<User Name>` -- with the <> included
 * Fixed notification before shutting down to render or backup
 * Early merge in of [**BDS process watchdog**](https://github.com/clarkx86/vellum/pull/10) by [**bennydiamond**](https://github.com/bennydiamond)
 
@@ -57,10 +58,12 @@ BdsWatchdog           Boolean            Watches the BDS process and tries to re
 ```
 
 ## How should I contribute?
-If your contribution is not related to the interaction of Vellum and ElementZero specifically, please contribute to the [**main repository**](https://github.com/clarkx86/vellum/) instead.
+Everyone is encouraged to contribute to the [**main repository**](https://github.com/clarkx86/vellum) over this one.  Any suggestions for features that don't require ElementZero should definitely go over there.
 
-## Will there be any downloadable releases for this fork?
-Not at this time, but there may be if there is enough need for it. The intention is that only people who really really need the functionality I've made for myself will pay any attention to this.  Everyone else should visit the main repo.
+If you encounter any problems using this version though, please use the issue tracker here. If it turns out to be a problem with the main codebase, the issue will be closed here and directed over there.
+
+## Linux version?
+Since ElementZero only runs on the Windows version of BDS, a Linux version of this fork wouldn't make sense.
 
 ## License?
 Vellum has not selected a license at the time of writing.  I have obtained permission for what's going on here.
