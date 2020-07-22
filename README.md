@@ -57,6 +57,9 @@ Everyone is encouraged to contribute to the [**main repository**](https://github
 
 If you encounter any problems using this version though, please use the issue tracker here. If it turns out to be a problem with the main codebase, the issue will be closed here and directed over there.
 
+## Linux version?
+Since ElementZero only runs on the Windows version of BDS, a Linux version of this fork wouldn't make sense.
+
 ## License?
 Vellum has not selected a license at the time of writing.  I have obtained permission for what's going on here.
 
