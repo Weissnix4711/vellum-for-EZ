@@ -44,6 +44,11 @@ DiscordToken          String (!)         The secret token for the discord bot
 DiscordChannel        ULong (!)          The numerical ID for the discord channel where
                                          the bot should send the messages
 
+DiscordMentions       Boolean (!)        Whether to allow users to create @ mentions
+                                         from inside Minecraft using @<Username>
+                                         (@everyone and @here are completely disabled
+                                         no matter how this option is set)
+
 -------------------
 ADDITIONAL SETTINGS
 -------------------

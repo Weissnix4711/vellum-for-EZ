@@ -50,5 +50,6 @@
         public bool EnableDiscord;
         public string DiscordToken;
         public ulong DiscordChannel;
+        public bool DiscordMentions;
     }
 }

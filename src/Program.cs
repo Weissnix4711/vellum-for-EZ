@@ -37,7 +37,7 @@ namespace Vellum
             debugTag = " DEBUG";
             #endif
 
-            Console.WriteLine("vellum v{0} build {1}\n{2}by clarkx86 & DeepBlue\n", UpdateChecker.ParseVersion(_localVersion, VersionFormatting.MAJOR_MINOR_REVISION) + debugTag, _localVersion.Build, new string(' ', 7));
+            Console.WriteLine("vellum v{0} build {1}\n{2}by clarkx86 & DeepBlue\nElementZero companion functions by tomrhollis\n", UpdateChecker.ParseVersion(_localVersion, VersionFormatting.MAJOR_MINOR_REVISION) + debugTag, _localVersion.Build, new string(' ', 7));
 
             bool printHelp = false;
 
@@ -426,7 +426,8 @@ namespace Vellum
                             ServerStatusMessages = false,
                             EnableDiscord = false,
                             DiscordToken = "none",
-                            DiscordChannel = 0
+                            DiscordChannel = 0,
+                            DiscordMentions = false
                         },
                         QuietMode = false,
                         HideStdout = true,

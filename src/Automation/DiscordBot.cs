@@ -83,40 +83,45 @@ namespace Vellum.Automation
         public async Task SendMessage(string msg)
         {
             string message = Regex.Replace(msg, @"§[0-9a-z]", ""); // strip minecraft formatting
-
-            // set up to do the find and replace for discord mentions
-            Regex userRegex = new Regex(@"@<([^>]+)>");
-            Regex channelRegex = new Regex(@"#([-a-z]+)", RegexOptions.IgnoreCase);
-            MatchCollection userMatches = userRegex.Matches(message);
-            MatchCollection channelMatches = channelRegex.Matches(message);
+            message = Regex.Replace(message, @"@everyone", "everyone");
+            message = Regex.Replace(message, @"@here", "here");
             var location = _client.GetChannel(RunConfig.ChatSync.DiscordChannel) as SocketTextChannel;
 
-            // replace @<username> with a mention string
-            foreach (Match um in userMatches)
+            if (RunConfig.ChatSync.DiscordMentions)
             {
-                var users = location.Guild.Users.Where(user => user.Username.ToLower() == um.Groups[1].Value.ToLower());
-                string userMention = null;
-
-                if (users.Count() > 0)
+                // set up to do the find and replace for discord mentions
+                Regex userRegex = new Regex(@"@<([^>]+)>");
+                Regex channelRegex = new Regex(@"#([-a-z]+)", RegexOptions.IgnoreCase);
+                MatchCollection userMatches = userRegex.Matches(message);
+                MatchCollection channelMatches = channelRegex.Matches(message);
+               
+                // replace @<username> with a mention string
+                foreach (Match um in userMatches)
                 {
-                    userMention = users.First().Mention;
-                    message = Regex.Replace(message, "@<" + um.Groups[1].Value + ">", userMention);
+                    var users = location.Guild.Users.Where(user => user.Username.ToLower() == um.Groups[1].Value.ToLower());
+                    string userMention = null;
+
+                    if (users.Count() > 0)
+                    {
+                        userMention = users.First().Mention;
+                        message = Regex.Replace(message, "@<" + um.Groups[1].Value + ">", userMention);
+                    }
+
                 }
-            }
 
-            // replace #channel-name with a mention string
-            foreach (Match cm in channelMatches)
-            {
-                var channels = location.Guild.Channels.Where(channel => channel.Name == cm.Groups[1].Value.ToLower());
-                ulong? channelId=null;
-
-                if (channels.Count() > 0)
+                // replace #channel-name with a mention string
+                foreach (Match cm in channelMatches)
                 {
-                    channelId = channels.First().Id;
-                    message = Regex.Replace(message, "#" + cm.Groups[1].Value, "<#" + channelId + ">");
+                    var channels = location.Guild.Channels.Where(channel => channel.Name == cm.Groups[1].Value.ToLower());
+                    ulong? channelId = null;
+
+                    if (channels.Count() > 0)
+                    {
+                        channelId = channels.First().Id;
+                        message = Regex.Replace(message, "#" + cm.Groups[1].Value, "<#" + channelId + ">");
+                    }
                 }
-            }
-                        
+            }         
             // send
             await location.SendMessageAsync(message);
         }
