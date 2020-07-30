@@ -162,15 +162,49 @@ namespace Vellum
                 playerCount = 0;
 
                 bool nextBackup = true;
-                if (RunConfig.Backups.OnActivityOnly || RunConfig.ChatSync.EnableChatSync)
+                System.Timers.Timer backupIntervalTimer = new System.Timers.Timer(RunConfig.Backups.BackupInterval * 60000);
+                System.Timers.Timer backupNotificationTimer = new System.Timers.Timer((RunConfig.Backups.BackupInterval * 60000) - Math.Clamp(RunConfig.Backups.NotifyBeforeStop * 1000, 0, RunConfig.Backups.BackupInterval * 60000));
+
+                backupIntervalTimer.Elapsed += (object sender, ElapsedEventArgs e) => {
+                    InvokeBackup(worldPath, tempWorldPath);
+
+                    if (RunConfig.Backups.StopBeforeBackup) playerCount = 0;
+
+                    if (RunConfig.Backups.OnActivityOnly && playerCount == 0)
+                    {
+                        backupIntervalTimer.AutoReset = false; // in case configuration.json changed
+                        nextBackup = false;
+                    } else if (RunConfig.Backups.StopBeforeBackup)
+                    {
+                        backupNotificationTimer.Start();
+                    }
+
+                    if (!RunConfig.Backups.OnActivityOnly && !backupIntervalTimer.AutoReset) // in case configuration.json changed
+                    {
+                        backupIntervalTimer.AutoReset = true;
+                        backupIntervalTimer.Start();
+                    }
+                };
+                backupNotificationTimer.Elapsed += (object sender, ElapsedEventArgs e) =>
+                {
+                    bds.SendTellraw(String.Format("Shutting down server in {0} seconds to take a backup.", RunConfig.Backups.NotifyBeforeStop));
+                };
+
+
+                if ((RunConfig.Backups.EnableBackups && RunConfig.Backups.OnActivityOnly) || (RunConfig.ChatSync.EnableChatSync && RunConfig.ChatSync.PlayerConnMessages))
                 {
                     nextBackup = false;
 
                     // Player connect/ disconnect messages
                     bds.RegisterMatchHandler(BdsStrings.PlayerConnected, (object sender, MatchedEventArgs e) =>
                     {
-                        playerCount++;
-                        nextBackup = true;
+                        if (RunConfig.Backups.EnableBackups && RunConfig.Backups.OnActivityOnly)
+                        {
+                            playerCount++;
+                            nextBackup = true;
+                            backupIntervalTimer.Start();
+                            if (RunConfig.Backups.StopBeforeBackup) backupNotificationTimer.Start();
+                        }
                         if (RunConfig.ChatSync.EnableChatSync && RunConfig.ChatSync.PlayerConnMessages)
                             _chatManager.UserConnect(e.Matches); //TH - to chat mgr
                     });
@@ -207,31 +241,14 @@ namespace Vellum
                 }
 
                 // Backup interval
-                if (RunConfig.Backups.EnableBackups)
+                if (RunConfig.Backups.EnableBackups && !RunConfig.Backups.OnActivityOnly)
                 {
-                    System.Timers.Timer backupIntervalTimer = new System.Timers.Timer(RunConfig.Backups.BackupInterval * 60000);
                     backupIntervalTimer.AutoReset = true;
-                    backupIntervalTimer.Elapsed += (object sender, ElapsedEventArgs e) =>
-                    {
-                        if (nextBackup)
-                        {
-                            InvokeBackup(worldPath, tempWorldPath);
-
-                            if (RunConfig.Backups.OnActivityOnly && playerCount == 0)
-                                nextBackup = false;
-                        } else
-                            Console.WriteLine("Skipping this backup because no players were online since the last one was taken...");
-                    };
                     backupIntervalTimer.Start();
 
                     if (RunConfig.Backups.StopBeforeBackup)
                     {
-                        System.Timers.Timer backupNotificationTimer = new System.Timers.Timer((RunConfig.Backups.BackupInterval * 60000) - Math.Clamp(RunConfig.Backups.NotifyBeforeStop * 1000, 0, RunConfig.Backups.BackupInterval * 60000));
                         backupNotificationTimer.AutoReset = false;
-                        backupNotificationTimer.Elapsed += (object sender, ElapsedEventArgs e) =>
-                        {
-                            bds.SendTellraw(String.Format("Shutting down server in {0} seconds to take a backup.", RunConfig.Backups.NotifyBeforeStop));
-                        };
                         backupNotificationTimer.Start();
                     }
                 }
