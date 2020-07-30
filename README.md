@@ -20,7 +20,7 @@ KEY                  VALUE              ABOUT
 ----------------------------------------------------------
 CHAT SETTINGS
 -----------------
-EnableChatSync        Boolean (!)        Enables this whole chat section
+EnableChatSync        Boolean            Enables this whole chat section
 
 BusAddress            String  (!)        The address of the ElementZero bus that all
                                          the servers are connected to
@@ -30,26 +30,32 @@ BusPort               Integer (!)        The port where the bus is listening
 OtherServers          String Array (!)   The names of all the other servers to
                                          broadcast messages to
 
-PlayerConnMessages    Boolean (!)        Broadcasts player connect/disconnect
+PlayerConnMessages    Boolean            Broadcasts player connect/disconnect
                                          messages
 
-ServerStatusMessages  Boolean (!)        Broadcasts server up/down messages
+ServerStatusMessages  Boolean            Broadcasts server up/down messages
                                       
-EnableDiscord         Boolean (!)        Enables the discord functionality
+EnableDiscord         Boolean            Enables the discord functionality
                                          **If you're not using the bus chat sync,
                                          keep EnableChatSync true but leave
                                          OtherServers as an empty array: [ ]
                                      
-DiscordToken          String (!)         The secret token for the discord bot
+DiscordToken          String             The secret token for the discord bot
 
-DiscordChannel        ULong (!)          The numerical ID for the discord channel where
+DiscordChannel        ULong              The numerical ID for the discord channel where
                                          the bot should send the messages
 
-DiscordMentions       Boolean (!)        Whether to allow users to create @ mentions
+DiscordMentions       Boolean            Whether to allow users to create @ mentions
                                          from inside Minecraft using @<Username>
                                          (@everyone and @here are completely disabled
                                          no matter how this option is set)
-
+                                         
+LatinOnly             Boolean            Only allow basic latin characters. (Extended
+                                         Unicode characters can cause lag issues,
+                                         which trolls can weaponize)
+                                         
+DiscordCharLimit      Integer (!)        Cuts off Discord messages at a specific length.
+                                         0 means unlimited
 -------------------
 ADDITIONAL SETTINGS
 -------------------
