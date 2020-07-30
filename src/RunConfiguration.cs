@@ -24,6 +24,7 @@
         public bool OnActivityOnly;
         public bool StopBeforeBackup;
         public uint NotifyBeforeStop;
+        // public bool HiVisNotifications; // not implemented yet
         public bool BackupOnStartup;
         public string PreExec;
         public string PostExec;
@@ -51,5 +52,7 @@
         public string DiscordToken;
         public ulong DiscordChannel;
         public bool DiscordMentions;
+        public bool LatinOnly;
+        public int DiscordCharLimit;
     }
 }

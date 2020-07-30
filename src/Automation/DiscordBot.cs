@@ -63,7 +63,7 @@ namespace Vellum.Automation
             foreach (Match um in userMatches)
             {
                 ulong user = ulong.Parse(um.Groups[1].ToString());
-                msgText = Regex.Replace(msgText, um.Value, "@"+(await Channel.GetUserAsync(user)).Username);
+                msgText = Regex.Replace(msgText, um.Value, (await Channel.GetUserAsync(user)).Username);
             }
             
             // replace channelID strings with #name
@@ -76,13 +76,23 @@ namespace Vellum.Automation
                 msgText = Regex.Replace(msgText, cm.Value, "#"+name);
             }
 
+            // handle size and text type exclusions (lots of extended unicode can cause client performance issues)
+            if (RunConfig.ChatSync.LatinOnly) msgText = Regex.Replace(msgText, @"[\P{IsBasicLatin}]", "");
+            if (RunConfig.ChatSync.DiscordCharLimit > 0)
+            {
+                int msgLength = msgText.Length;
+                msgText = msgText.Substring(0, RunConfig.ChatSync.DiscordCharLimit);
+                if (msgLength > RunConfig.ChatSync.DiscordCharLimit) msgText += "...";
+            }
+            msgText = Regex.Replace(msgText, @"[\r\n]{1,2}", "\\n");
+
             // post on this server (other servers will handle discord themselves)
-            _chatMgr.PostMessage(String.Format("(Discord) [{0}] {1}", message.Author.Username, msgText));
+            _chatMgr.DiscordMessageToMC(String.Format("[§d{0}§r] {1}", message.Author.Username, msgText));
         }
         
         public async Task SendMessage(string msg)
         {
-            string message = Regex.Replace(msg, @"§[0-9a-z]", ""); // strip minecraft formatting
+            string message = Regex.Replace(msg, @"[§\u00a7][0-9a-z]", ""); // strip minecraft formatting
             message = Regex.Replace(message, @"@everyone", "everyone");
             message = Regex.Replace(message, @"@here", "here");
             var location = _client.GetChannel(RunConfig.ChatSync.DiscordChannel) as SocketTextChannel;
