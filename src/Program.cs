@@ -113,7 +113,9 @@ namespace Vellum
                     "^(A previous save has not been completed.)",
                     "^(Data saved. Files are now ready to be copied.)",
                     "^(Changes to the level are resumed.)",
-                    "Running AutoCompaction..."
+                    "Running AutoCompaction...",
+                    "command successfully executed",
+                    "targets matched selector"
                 }, 
                 RunConfig.BdsWatchdog);
 
@@ -166,8 +168,10 @@ namespace Vellum
                 System.Timers.Timer backupNotificationTimer = new System.Timers.Timer((RunConfig.Backups.BackupInterval * 60000) - Math.Clamp(RunConfig.Backups.NotifyBeforeStop * 1000, 0, RunConfig.Backups.BackupInterval * 60000));
                 System.Timers.Timer hiVisTimer = new System.Timers.Timer(1000);
 
+                backupNotificationTimer.AutoReset = false;
+
                 backupIntervalTimer.Elapsed += (object sender, ElapsedEventArgs e) => {
-                    if (RunConfig.Backups.HiVisNotifications)
+                    if (RunConfig.Backups.HiVisNotifications) // TH
                     {
                         hiVisTimer.AutoReset = false;
                         hiVisTimer.Stop();
@@ -179,6 +183,7 @@ namespace Vellum
                     if (RunConfig.Backups.OnActivityOnly && playerCount == 0)
                     {
                         backupIntervalTimer.AutoReset = false; // in case configuration.json changed
+                        backupIntervalTimer.Stop();
                     } 
                     else if (RunConfig.Backups.StopBeforeBackup)
                     {
@@ -193,27 +198,28 @@ namespace Vellum
                 };
                 backupNotificationTimer.Elapsed += (object sender, ElapsedEventArgs e) =>
                 {
-                    string timeUnit = (RunConfig.Backups.NotifyBeforeStop > 60) ? "minutes" : "seconds"; //TH
-                    bds.SendTellraw(String.Format("Shutting down server in {0} {1} to take a backup.", RunConfig.Backups.NotifyBeforeStop, timeUnit));
-                    if (RunConfig.Backups.HiVisNotifications)
-                    { 
-                        if (RunConfig.Backups.NotifyBeforeStop > 0)
-                        {
-                            hiVisTimer.AutoReset = true;
-                            hiVisTimer.Start();
-                        }     
+                    //in case notification is set more than a minute out -TH
+                    string timeUnit = (RunConfig.Backups.NotifyBeforeStop > 60) ? "minutes" : "seconds";
+                    uint time = (timeUnit == "minutes") ? RunConfig.Backups.NotifyBeforeStop / 60 : RunConfig.Backups.NotifyBeforeStop;
+
+                    bds.SendTellraw(String.Format("Shutting down server in {0} {1} to take a backup.", time, timeUnit));
+                    if (RunConfig.Backups.NotifyBeforeStop > 0 && RunConfig.Backups.HiVisNotifications) //TH 
+                    {
+                        msCountdown = RunConfig.Backups.NotifyBeforeStop * 1000;
+                        hiVisTimer.AutoReset = true;
+                        hiVisTimer.Start();
                     }
                 };
                 hiVisTimer.Elapsed += (object sender, ElapsedEventArgs e) => // count down minutes on the actionbar, then in the subtitle -TH
                 {
                     msCountdown -= 1000;
-                    if (msCountdown > 10500)
+                    if ((msCountdown > 60500 && msCountdown % 60000 < 1000) || (msCountdown < 60500 && msCountdown >10500))
                     {
-                        bds.SendInput(String.Format("title @a actionbar \\u00a7cLess than {0} mins to scheduled backup!", (int)Math.Ceiling((decimal)msCountdown / 60000m)));
-                    } else
+                        bds.SendInput(String.Format("title @a actionbar \u00a7c\u00a7lLess than {0} mins to scheduled restart!", (int)Math.Ceiling((decimal)msCountdown / 60000m)));
+                    } else if (msCountdown < 10500)
                     {
-                        bds.SendInput(String.Format("title @a subtitle \\u00a7c{0} seconds to backup!", (int)Math.Ceiling((decimal)msCountdown / 1000m)));
-                        bds.SendInput("title @a title _");
+                        bds.SendInput("title @a actionbar \u00a7c\u00a7lseconds until restart");
+                        bds.SendInput(String.Format("title @a title \u00a7c{0}", (int)Math.Ceiling((decimal)msCountdown / 1000m)));
                     }
 
                 };
@@ -228,7 +234,10 @@ namespace Vellum
                         {
                             playerCount++;
                             backupIntervalTimer.Start();
-                            if (RunConfig.Backups.StopBeforeBackup) backupNotificationTimer.Start();
+                            if (RunConfig.Backups.StopBeforeBackup)
+                            {
+                                backupNotificationTimer.Start();
+                            }
                         }
                         if (RunConfig.ChatSync.EnableChatSync && RunConfig.ChatSync.PlayerConnMessages)
                             _chatManager.UserConnect(e.Matches); //TH - to chat mgr
