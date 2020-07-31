@@ -24,7 +24,7 @@
         public bool OnActivityOnly;
         public bool StopBeforeBackup;
         public uint NotifyBeforeStop;
-        // public bool HiVisNotifications; // not implemented yet
+        public bool HiVisNotifications;
         public bool BackupOnStartup;
         public string PreExec;
         public string PostExec;

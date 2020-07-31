@@ -161,11 +161,17 @@ namespace Vellum
                 
                 playerCount = 0;
 
-                bool nextBackup = true;
+                uint msCountdown = RunConfig.Backups.NotifyBeforeStop * 1000;
                 System.Timers.Timer backupIntervalTimer = new System.Timers.Timer(RunConfig.Backups.BackupInterval * 60000);
                 System.Timers.Timer backupNotificationTimer = new System.Timers.Timer((RunConfig.Backups.BackupInterval * 60000) - Math.Clamp(RunConfig.Backups.NotifyBeforeStop * 1000, 0, RunConfig.Backups.BackupInterval * 60000));
+                System.Timers.Timer hiVisTimer = new System.Timers.Timer(1000);
 
                 backupIntervalTimer.Elapsed += (object sender, ElapsedEventArgs e) => {
+                    if (RunConfig.Backups.HiVisNotifications)
+                    {
+                        hiVisTimer.AutoReset = false;
+                        hiVisTimer.Stop();
+                    }
                     InvokeBackup(worldPath, tempWorldPath);
 
                     if (RunConfig.Backups.StopBeforeBackup) playerCount = 0;
@@ -173,8 +179,8 @@ namespace Vellum
                     if (RunConfig.Backups.OnActivityOnly && playerCount == 0)
                     {
                         backupIntervalTimer.AutoReset = false; // in case configuration.json changed
-                        nextBackup = false;
-                    } else if (RunConfig.Backups.StopBeforeBackup)
+                    } 
+                    else if (RunConfig.Backups.StopBeforeBackup)
                     {
                         backupNotificationTimer.Start();
                     }
@@ -187,21 +193,40 @@ namespace Vellum
                 };
                 backupNotificationTimer.Elapsed += (object sender, ElapsedEventArgs e) =>
                 {
-                    bds.SendTellraw(String.Format("Shutting down server in {0} seconds to take a backup.", RunConfig.Backups.NotifyBeforeStop));
+                    string timeUnit = (RunConfig.Backups.NotifyBeforeStop > 60) ? "minutes" : "seconds"; //TH
+                    bds.SendTellraw(String.Format("Shutting down server in {0} {1} to take a backup.", RunConfig.Backups.NotifyBeforeStop, timeUnit));
+                    if (RunConfig.Backups.HiVisNotifications)
+                    { 
+                        if (RunConfig.Backups.NotifyBeforeStop > 0)
+                        {
+                            hiVisTimer.AutoReset = true;
+                            hiVisTimer.Start();
+                        }     
+                    }
+                };
+                hiVisTimer.Elapsed += (object sender, ElapsedEventArgs e) => // count down minutes on the actionbar, then in the subtitle -TH
+                {
+                    msCountdown -= 1000;
+                    if (msCountdown > 10500)
+                    {
+                        bds.SendInput(String.Format("title @a actionbar \\u00a7cLess than {0} mins to scheduled backup!", (int)Math.Ceiling((decimal)msCountdown / 60000m)));
+                    } else
+                    {
+                        bds.SendInput(String.Format("title @a subtitle \\u00a7c{0} seconds to backup!", (int)Math.Ceiling((decimal)msCountdown / 1000m)));
+                        bds.SendInput("title @a title _");
+                    }
+
                 };
 
 
                 if ((RunConfig.Backups.EnableBackups && RunConfig.Backups.OnActivityOnly) || (RunConfig.ChatSync.EnableChatSync && RunConfig.ChatSync.PlayerConnMessages))
                 {
-                    nextBackup = false;
-
                     // Player connect/ disconnect messages
                     bds.RegisterMatchHandler(BdsStrings.PlayerConnected, (object sender, MatchedEventArgs e) =>
                     {
                         if (RunConfig.Backups.EnableBackups && RunConfig.Backups.OnActivityOnly)
                         {
                             playerCount++;
-                            nextBackup = true;
                             backupIntervalTimer.Start();
                             if (RunConfig.Backups.StopBeforeBackup) backupNotificationTimer.Start();
                         }
