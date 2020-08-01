@@ -103,7 +103,9 @@ namespace Vellum.Automation
             {
                 HttpClient client = new HttpClient();
                 prefix = Regex.Replace(prefix, @"§", "\\u00a7");
+                prefix = Regex.Replace(prefix, @"""", "\\\"");
                 chat = Regex.Replace(chat, @"§", "\\u00a7");
+                chat = Regex.Replace(chat, @"""", "\\\"");
                 string message = "tellraw @a {\"rawtext\":[{\"text\":\"" + prefix + chat + "\"}]}";
                 string address = "http://{0}:{1}/map/{2}/execute_command";
                     

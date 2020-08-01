@@ -57,6 +57,13 @@ LatinOnly             Boolean            Only allow basic latin characters. (Ext
 DiscordCharLimit      Integer (!)        Cuts off Discord messages at a specific length.
                                          0 means unlimited
 -------------------
+BACKUP SETTINGS
+-------------------
+
+HiVisNotifications    Boolean            Show actionbar and title warnings starting 10
+                                         minutes before backup
+
+-------------------
 ADDITIONAL SETTINGS
 -------------------
 BdsWatchdog           Boolean            Watches the BDS process and tries to restart
